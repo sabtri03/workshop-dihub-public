@@ -96,23 +96,22 @@ drop table if exists fm_demo.naivesbayes_conf_matrix_3;
 -- ================================================================================
 -- ================================================================================
 
-
+-- data manipulation
+-- 20% sample
 drop table if exists fm_demo.gb_loans_dev;
 create table fm_demo.gb_loans_dev distribute by hash(loan_seq_num) as 
 select * from sample(on fm_demo.gb_loans_id  samplefraction('0.2'));
--- 20% sample
 
+-- 80% sample
 drop table if exists fm_demo.gb_loans_test;
 create table fm_demo.gb_loans_test distribute by hash(loan_seq_num) as
 select a.*  from fm_demo.gb_loans_id a left join fm_demo.gb_loans_dev b on a.id=b.id where  
 b.id is null;
--- 80% sample
 
 select * from fm_demo.gb_loans_dev limit 100; 
 select * from fm_demo.gb_loans_test limit 100;
 
------- glm - construction model ------------
-
+-- glm - construction model
 drop table if exists fm_demo.gb_loans2006_glm;
 select * from glm (
 		on (select 1)
@@ -126,8 +125,7 @@ select * from glm (
 		maxiternum('10')
 );
 
------- glm - prediction model -------------
-
+-- glm - prediction model
  drop table if exists fm_demo.score_glm;
 create table fm_demo.score_glm distribute by hash(id) as
 select * from glmpredict (
@@ -140,8 +138,7 @@ select * from glmpredict (
 
 select * from fm_demo.score_glm;
 
------- cleaning -------------------
-
+-- cleaning
 drop table if exists fm_demo.gb_loans_dev;
 drop table if exists fm_demo.gb_loans_test;
 drop table if exists fm_demo.gb_loans2006_glm;
@@ -191,8 +188,7 @@ from fm_demo.gb_loans;
 
 analyze fm_demo.gb_loans_kmeans_input;
 
------- kmeans - construction clusters ------------
-
+-- kmeans - construction clusters
 drop table if exists fm_demo.gb_loans_kmeans_output;
 select * from kmeans(
 		on (select 1)
@@ -203,8 +199,7 @@ select * from kmeans(
 );
 select * from fm_demo.gb_loans_kmeans_output;
 
------- kmeans - prediction clusters ------------
-
+-- kmeans - prediction clusters
 drop table if exists fm_demo.gb_loans_kmeansplot;
 create table fm_demo.gb_loans_kmeansplot distribute by hash (loan_seq_num) as
 select * from kmeansplot(
@@ -215,8 +210,7 @@ select * from kmeansplot(
 
 select * from fm_demo.gb_loans_kmeansplot;
 
------- cleaning -------------------
-
+-- cleaning
 drop table if exists fm_demo.gb_loans_kmeans_input;
 drop table if exists fm_demo.gb_loans_kmeans_output;
 drop table if exists fm_demo.gb_loans_kmeansplot;

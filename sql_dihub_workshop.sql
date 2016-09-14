@@ -39,7 +39,7 @@ select * from <SCHEMA>.gb_loans_dev limit 100;
 select * from <SCHEMA>.gb_loans_test limit 100;
 
 -- naives bayes - construction model
--- TO DO: Add columns to numeric and categorical inputs. foreclose_flg is the variable we want to predict
+-- TO DO: Replace <FILL_IN> with the appropriate SQL command. Hint Columns are: 'credit_score', property_type_cd', 'orig_dti', 'orig_ltv', 'num_borrowers' predictor is foreclose_flg
 drop table if exists <SCHEMA>.naivesbayes;
 create table <SCHEMA>.naivesbayes (partition key(class)) as
 select * from naivebayesreduce(
@@ -56,7 +56,7 @@ partition by class);
 select * from <SCHEMA> .naivesbayes;
 
 -- naives bayes - prediction model
--- TO DO: Use the model from above and score it against the test set.
+-- TO DO: Replace <FILL_IN> with the appropriate SQL command.
 drop table if exists   <SCHEMA>.naivesbayes_pred;
 create table  <SCHEMA>.naivesbayes_pred distribute by hash(id) as
 select a.prediction, a."loglik_1", a."loglik_0",b.* from (
@@ -75,7 +75,7 @@ select * from <SCHEMA>.naivesbayes_pred  limit 100;
 
 
 -- confusion matrix 
--- TO DO: Use the prediction table and look if the model performs well or not.
+-- TO DO: Replace <FILL_IN> with the appropriate SQL command.
 drop table if exists <SCHEMA>.naivesbayes_conf_matrix_1;
 drop table if exists <SCHEMA>.naivesbayes_conf_matrix_2;
 drop table if exists <SCHEMA>.naivesbayes_conf_matrix_3;
@@ -103,52 +103,47 @@ drop table if exists <SCHEMA>.naivesbayes_conf_matrix_3;
 -- ================================================================================
 -- ================================================================================
 
-
+-- data manipulation
+-- 20% sample
+-- TO DO: Fill in sample fraction.
 drop table if exists <SCHEMA>.gb_loans_dev;
 create table <SCHEMA>.gb_loans_dev distribute by hash(loan_seq_num) as 
-select * from sample(on fm_demo.gb_loans_id  samplefraction('0.2'));
--- 20% sample
+select * from sample(on fm_demo.gb_loans_id  samplefraction('<FILL_IN>'));
 
+-- 80% sample
 drop table if exists <SCHEMA>.gb_loans_test;
 create table <SCHEMA>.gb_loans_test distribute by hash(loan_seq_num) as
 select a.*  from fm_demo.gb_loans_id a left join <SCHEMA>.gb_loans_dev b on a.id=b.id where  
 b.id is null;
--- 80% sample
+
 
 select * from <SCHEMA>.gb_loans_dev limit 100; 
 select * from <SCHEMA>.gb_loans_test limit 100;
 
------- glm - construction model ------------
-
+-- glm - construction model
+-- TO DO: Replace <FILL_IN> with the appropriate SQL command. Hint, this time we use foreclose_flg_nr as a predictor.
 drop table if exists <SCHEMA> .gb_loans2006_glm;
 select * from glm (
 		on (select 1)
 		partition by 1
-		inputtable('<SCHEMA>.gb_loans_dev')
-		outputtable('<SCHEMA>.gb_loans2006_glm')
-		columnnames('foreclose_flg_nr', 'credit_score', 'orig_dti', 'orig_ltv', 'num_borrowers','property_type_cd')
-		categoricalcolumns('property_type_cd')
-		family('logistic')
-		link('logit')
-		maxiternum('10')
+		<FILL_IN>
 );
 
------- glm - prediction model -------------
-
+-- glm - prediction model -------------
+-- TO DO: Replace <FILL_IN> with the appropriate SQL comman 
  drop table if exists <SCHEMA>.score_glm;
 create table <SCHEMA>.score_glm distribute by hash(id) as
 select * from glmpredict (
 		on <SCHEMA> .gb_loans_test
 		modeltable ('<SCHEMA>.gb_loans2006_glm')
 		accumulate ('id', 'foreclose_flg')
-		family ('logistic')
-		link ('logit')
+		family (<FILL_IN>)
+		link (<FILL_IN>)
 );
 
 select * from <SCHEMA>.score_glm;
 
------- cleaning -------------------
-
+-- cleaning
 drop table if exists <SCHEMA>.gb_loans_dev;
 drop table if exists <SCHEMA>.gb_loans_test;
 drop table if exists <SCHEMA>.gb_loans2006_glm;
@@ -198,20 +193,18 @@ from fm_demo.gb_loans;
 
 analyze <SCHEMA>.gb_loans_kmeans_input;
 
------- kmeans - construction clusters ------------
-
+-- kmeans - construction clusters
+-- TO DO: Replace <FILL_IN> with the appropriate SQL command.
 drop table if exists <SCHEMA> .gb_loans_kmeans_output;
 select * from kmeans(
 		on (select 1)
 		partition by 1
-		inputtable('<SCHEMA>.gb_loans_kmeans_input')
-		outputtable('<SCHEMA>.gb_loans_kmeans_output')
+		<FILL_IN>)
 		numberk(2)
 );
 select * from <SCHEMA>.gb_loans_kmeans_output;
 
------- kmeans - prediction clusters ------------
-
+-- kmeans - prediction clusters
 drop table if exists <SCHEMA>.gb_loans_kmeansplot;
 create table <SCHEMA>.gb_loans_kmeansplot distribute by hash (loan_seq_num) as
 select * from kmeansplot(
@@ -220,10 +213,9 @@ select * from kmeansplot(
 		centroidstable('<SCHEMA>.gb_loans_kmeans_output')
 );
 
-select * from <SCHEMA> .gb_loans_kmeansplot;
+select * from <SCHEMA>.gb_loans_kmeansplot;
 
------- cleaning -------------------
-
+-- cleaning
 drop table if exists <SCHEMA>.gb_loans_kmeans_input;
 drop table if exists <SCHEMA>.gb_loans_kmeans_output;
 drop table if exists <SCHEMA>.gb_loans_kmeansplot;
