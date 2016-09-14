@@ -226,16 +226,17 @@ drop table if exists <SCHEMA>.gb_loans_kmeansplot;
 --- This nested sql creates the main input table for a HMM model
 drop table if exists <SCHEMA>.gb_monthly_perform_hmm_input;
 create table <SCHEMA>.gb_monthly_perform_hmm_input distribute by hash (loan_seq_num) as
-select *
+select 
 	  --- we create the state column
-	, case
+	  case
 	  when observation = 'defaulted' then 'defaulted'
 	  when curr_delinqency_cd != 0 then 'delinquent'
 	  else 'performing'
 	  end as state
+	  , *
 from ( --- we create the observation column 
-	select *
-	, case
+	select 
+	  case
 	  when curr_interest_rt < lag_int_rt and lag_int_rt != 0 then 'interest_down'
 	  when curr_interest_rt > lag_int_rt and lag_int_rt != 0 then 'interest_up'
 	  when curr_act_upb = 0 and lag_upb = 0 then 'ignore'
@@ -247,6 +248,7 @@ from ( --- we create the observation column
 	  when curr_act_upb = 0 and zero_bal_cd = '1' then 'full_payoff'
 	  else 'unknown'
 	  end as observation
+	  , *
 from ( --- selecting important columns and adding the lag for some
 	select loan_seq_num
 	, loan_age
@@ -265,6 +267,7 @@ where  loan_seq_num in (select loan_seq_num
 from fm_demo.gb_monthly_perform
 group by loan_seq_num
 having count(*) > 10
+--- limit set to 1000, change it if needed
 limit 1000)
 ) as a
 ) as b
@@ -286,11 +289,11 @@ group by state, observation
 drop table if exists <SCHEMA>.hmm_pi_loans, <SCHEMA>.hmm_trans_states, <SCHEMA>.hmm_trans_states_obs;
 SELECT * FROM HMMSupervisedLearner (
 ON <SCHEMA> .gb_monthly_perform_hmm_input AS "vertices"
-PARTITION BY loan_seq_num
-ORDER BY loan_seq_num, loan_age ASC
-SequenceKey ('loan_seq_num')
-ObservedKey ('observation')
-StateKey ('state')
+PARTITION BY <FILL_IN>
+ORDER BY <FILL_IN>, <FILL_IN> ASC
+SequenceKey (<FILL_IN>)
+ObservedKey (<FILL_IN>)
+StateKey (<FILL_IN>)
 OutputTables ('<SCHEMA>.hmm_pi_loans', '<SCHEMA>.hmm_trans_states', '<SCHEMA>.hmm_trans_states_obs')
 );
 
