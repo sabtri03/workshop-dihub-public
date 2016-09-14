@@ -22,81 +22,80 @@ select * from <SCHEMA>.gb_monthly_perform limit 100;
 -- ================================================================================
 
 -- data manipulation
-
+-- 20% sample
+-- TO DO: Fill in sample fraction.
 drop table if exists <SCHEMA>.gb_loans_dev;
 create table <SCHEMA>.gb_loans_dev distribute by hash(loan_seq_num) as 
-select * from sample(on fm_demo.gb_loans_id  samplefraction('0.2'));
--- 20% sample
+select * from sample(on fm_demo.gb_loans_id  samplefraction('<FILL_IN>'));
 
+
+-- 80% sample
 drop table if exists <SCHEMA>.gb_loans_test;
 create table <SCHEMA>.gb_loans_test distribute by hash(loan_seq_num) as
 select a.*  from fm_demo.gb_loans_id a left join <SCHEMA>.gb_loans_dev b on a.id=b.id where  
 b.id is null;
--- 80% sample
 
 select * from <SCHEMA>.gb_loans_dev limit 100; 
 select * from <SCHEMA>.gb_loans_test limit 100;
 
-------naives bayes - construction model ------------
-
+-- naives bayes - construction model
+-- TO DO: Add columns to numeric and categorical inputs. foreclose_flg is the variable we want to predict
 drop table if exists <SCHEMA>.naivesbayes;
 create table <SCHEMA>.naivesbayes (partition key(class)) as
 select * from naivebayesreduce(
               on(
                      select * from naivebayesmap(
                            on  <SCHEMA>.gb_loans_dev 
-                           response('foreclose_flg')
-                           numericinputs('credit_score', 'orig_dti', 'orig_ltv', 'num_borrowers')
-			   categoricalinputs('property_type_cd')
+                           response(<FILL_IN>)
+                           numericinputs(<FILL_IN>)
+			   categoricalinputs(<FILL_IN>)
                            )
               )
 partition by class);
--- construct nb model
 
 select * from <SCHEMA> .naivesbayes;
 
-
------- naives bayes - prediction model -------------
-
-
+-- naives bayes - prediction model
+-- TO DO: Use the model from above and score it against the test set.
 drop table if exists   <SCHEMA>.naivesbayes_pred;
 create table  <SCHEMA>.naivesbayes_pred distribute by hash(id) as
 select a.prediction, a."loglik_1", a."loglik_0",b.* from (
        select * from naivebayespredict(
-              on <SCHEMA>.gb_loans_test
-              model('<SCHEMA>.naivesbayes')
-              idcol('id')
-              numericinputs('credit_score', 'orig_dti', 'orig_ltv', 'num_borrowers')
-	      categoricalinputs('property_type_cd')
+              on <SCHEMA>.<FILL_IN>
+              model(<FILL_IN>)
+              idcol(<FILL_IN>)
+              numericinputs(<FILL_IN>)
+	      categoricalinputs(<FILL_IN>)
               )
            ) a
 inner join <SCHEMA>.gb_loans_test b on a.id=b.id;
--- predict back to the 80% data
 
 select * from <SCHEMA>.naivesbayes_pred  limit 100; 
--- truth is downup
 
 
------- confusion matrix -------------------
 
-drop table if exists <SCHEMA>.naivesnayes_conf_matrix;
+-- confusion matrix 
+-- TO DO: Use the prediction table and look if the model performs well or not.
+drop table if exists <SCHEMA>.naivesbayes_conf_matrix_1;
+drop table if exists <SCHEMA>.naivesbayes_conf_matrix_2;
+drop table if exists <SCHEMA>.naivesbayes_conf_matrix_3;
 select * from confusionmatrix(
-on <SCHEMA>.naivesbayes_pred partition by 1
-expectcolumn('foreclose_flg')
-predictcolumn('prediction')
-outputtable('<SCHEMA>.naivesnayes_conf_matrix')
+	on <SCHEMA>.naivesbayes_pred partition by 1
+	expectcolumn(<FILL_IN>)
+	predictcolumn(<FILL_IN>)
+	outputtable('<SCHEMA>.naivesbayes_conf_matrix')
 );
-
 
 select * from <SCHEMA>.naivesnayes_conf_matrix ;
 
------- cleaning -------------------
-
+-- cleaning 
 drop table if exists <SCHEMA>.gb_loans_dev;
 drop table if exists <SCHEMA>.gb_loans_test;
 drop table if exists <SCHEMA>.naivesbayes;
 drop table if exists <SCHEMA>.naivesbayes_pred;
-drop table if exists <SCHEMA>.naivesnayes_conf_matrix;
+drop table if exists <SCHEMA>.naivesbayes_conf_matrix_1;
+drop table if exists <SCHEMA>.naivesbayes_conf_matrix_2;
+drop table if exists <SCHEMA>.naivesbayes_conf_matrix_3;
 
 -- ================================================================================
 -- ================================================================================

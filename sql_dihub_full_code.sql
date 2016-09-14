@@ -21,23 +21,21 @@ select * from fm_demo.gb_monthly_perform limit 100;
 -- ================================================================================
 
 -- data manipulation
-
+-- 20% sample
 drop table if exists fm_demo.gb_loans_dev;
 create table fm_demo.gb_loans_dev distribute by hash(loan_seq_num) as 
 select * from sample(on fm_demo.gb_loans_id  samplefraction('0.2'));
--- 20% sample
 
+-- 80% sample
 drop table if exists fm_demo.gb_loans_test;
 create table fm_demo.gb_loans_test distribute by hash(loan_seq_num) as
 select a.*  from fm_demo.gb_loans_id a left join fm_demo.gb_loans_dev b on a.id=b.id where  
 b.id is null;
--- 80% sample
 
 select * from fm_demo.gb_loans_dev limit 100; 
 select * from fm_demo.gb_loans_test limit 100;
 
-------naives bayes - construction model ------------
-
+-- naives bayes - construction model
 drop table if exists fm_demo.naivesbayes;
 create table fm_demo.naivesbayes (partition key(class)) as
 select * from naivebayesreduce(
@@ -50,14 +48,10 @@ select * from naivebayesreduce(
                            )
               )
 partition by class);
--- construct nb model
 
 select * from fm_demo.naivesbayes;
 
-
------- naives bayes - prediction model -------------
-
-
+-- naives bayes - prediction model
 drop table if exists   fm_demo.naivesbayes_pred;
 create table  fm_demo.naivesbayes_pred distribute by hash(id) as
 select a.prediction, a."loglik_1", a."loglik_0",b.* from (
@@ -70,32 +64,31 @@ select a.prediction, a."loglik_1", a."loglik_0",b.* from (
               )
            ) a
 inner join fm_demo.gb_loans_test b on a.id=b.id;
--- predict back to the 80% data
 
 select * from fm_demo.naivesbayes_pred  limit 100; 
--- truth is downup
 
-
------- confusion matrix -------------------
-
-drop table if exists fm_demo.naivesnayes_conf_matrix;
+-- confusion matrix
+drop table if exists fm_demo.naivesbayes_conf_matrix_1;
+drop table if exists fm_demo.naivesbayes_conf_matrix_2;
+drop table if exists fm_demo.naivesbayes_conf_matrix_3;
 select * from confusionmatrix(
-on fm_demo.naivesbayes_pred partition by 1
-expectcolumn('foreclose_flg')
-predictcolumn('prediction')
-outputtable('fm_demo.naivesnayes_conf_matrix')
+	on fm_demo.naivesbayes_pred partition by 1
+	expectcolumn('foreclose_flg')
+	predictcolumn('prediction')
+	outputtable('fm_demo.naivesbayes_conf_matrix')
 );
 
 
 select * from fm_demo.naivesnayes_conf_matrix ;
 
------- cleaning -------------------
-
+-- cleaning 
 drop table if exists fm_demo.gb_loans_dev;
 drop table if exists fm_demo.gb_loans_test;
 drop table if exists fm_demo.naivesbayes;
 drop table if exists fm_demo.naivesbayes_pred;
-drop table if exists fm_demo.naivesnayes_conf_matrix;
+drop table if exists fm_demo.naivesbayes_conf_matrix_1;
+drop table if exists fm_demo.naivesbayes_conf_matrix_2;
+drop table if exists fm_demo.naivesbayes_conf_matrix_3;
 
 -- ================================================================================
 -- ================================================================================
