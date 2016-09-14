@@ -1,7 +1,7 @@
 -- ================================================================================
 -- ================================================================================
 -- title : dihub demo
--- version : 0.9
+-- version : 1.0
 -- date : 14-sept-2016
 -- author 1 : mark oost, data scientist
 -- author 2 : mireia alos palop, data scientist
@@ -79,7 +79,9 @@ select * from confusionmatrix(
 );
 
 
-select * from fm_demo.naivesnayes_conf_matrix ;
+select * from fm_demo.naivesbayes_conf_matrix_1;
+select * from fm_demo.naivesbayes_conf_matrix_2;
+select * from fm_demo.naivesbayes_conf_matrix_3;
 
 -- cleaning 
 drop table if exists fm_demo.gb_loans_dev;

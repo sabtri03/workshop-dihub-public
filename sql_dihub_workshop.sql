@@ -1,7 +1,7 @@
 -- ================================================================================
 -- ================================================================================
 -- title : dihub demo
--- version : 0.9
+-- version : 1.0
 -- date : 14-sept-2016
 -- author 1 : mark oost, data scientist
 -- author 2 : mireia alos palop, data scientist
@@ -86,7 +86,10 @@ select * from confusionmatrix(
 	outputtable('<SCHEMA>.naivesbayes_conf_matrix')
 );
 
-select * from <SCHEMA>.naivesnayes_conf_matrix ;
+select * from <SCHEMA>.naivesbayes_conf_matrix_1;
+select * from <SCHEMA>.naivesbayes_conf_matrix_2;
+select * from <SCHEMA>.naivesbayes_conf_matrix_3;
+
 
 -- cleaning 
 drop table if exists <SCHEMA>.gb_loans_dev;
@@ -129,16 +132,12 @@ select * from glm (
 		<FILL_IN>
 );
 
--- glm - prediction model -------------
+-- glm - prediction model
 -- TO DO: Replace <FILL_IN> with the appropriate SQL comman 
  drop table if exists <SCHEMA>.score_glm;
 create table <SCHEMA>.score_glm distribute by hash(id) as
-select * from glmpredict (
-		on <SCHEMA> .gb_loans_test
-		modeltable ('<SCHEMA>.gb_loans2006_glm')
-		accumulate ('id', 'foreclose_flg')
-		family (<FILL_IN>)
-		link (<FILL_IN>)
+select * from glmpredict(
+		<FILL_IN>
 );
 
 select * from <SCHEMA>.score_glm;
@@ -197,20 +196,18 @@ analyze <SCHEMA>.gb_loans_kmeans_input;
 -- TO DO: Replace <FILL_IN> with the appropriate SQL command.
 drop table if exists <SCHEMA> .gb_loans_kmeans_output;
 select * from kmeans(
-		on (select 1)
-		partition by 1
-		<FILL_IN>)
-		numberk(2)
+		<FILL_IN>
 );
 select * from <SCHEMA>.gb_loans_kmeans_output;
 
+-- TO DO: Replace <FILL_IN> with the appropriate SQL command.
 -- kmeans - prediction clusters
 drop table if exists <SCHEMA>.gb_loans_kmeansplot;
 create table <SCHEMA>.gb_loans_kmeansplot distribute by hash (loan_seq_num) as
 select * from kmeansplot(
 		on <SCHEMA>.gb_loans_kmeans_input partition by any
 		on <SCHEMA>.gb_loans_kmeans_output dimension
-		centroidstable('<SCHEMA>.gb_loans_kmeans_output')
+		centroidstable(<FILL_IN>)
 );
 
 select * from <SCHEMA>.gb_loans_kmeansplot;
