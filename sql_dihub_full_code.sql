@@ -81,7 +81,7 @@ select * from fm_demo.naivesbayes_pred  limit 100;
 drop table if exists fm_demo.naivesnayes_conf_matrix;
 select * from confusionmatrix(
 on fm_demo.naivesbayes_pred partition by 1
-expectcolumn('foreclose_flg_c')
+expectcolumn('foreclose_flg')
 predictcolumn('prediction')
 outputtable('fm_demo.naivesnayes_conf_matrix')
 );

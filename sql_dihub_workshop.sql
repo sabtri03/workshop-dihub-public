@@ -9,10 +9,10 @@
 -- ================================================================================
 
 -- TO DO: Replace <FILL_IN> with the appropriate SQL command.
--- TO DO: Replace <SCHEMA> your own schema.
+-- TO DO: Replace <SCHEMA> with your own schema.
 -- quick look at the source data
-select * from <SCHEMA> .gb_loans_id limit 100; 
-select * from <SCHEMA> .gb_monthly_perform limit 100;
+select * from <SCHEMA>.gb_loans_id limit 100; 
+select * from <SCHEMA>.gb_monthly_perform limit 100;
 
 
 -- ================================================================================
@@ -82,13 +82,13 @@ select * from <SCHEMA>.naivesbayes_pred  limit 100;
 drop table if exists <SCHEMA>.naivesnayes_conf_matrix;
 select * from confusionmatrix(
 on <SCHEMA>.naivesbayes_pred partition by 1
-expectcolumn('foreclose_flg_c')
+expectcolumn('foreclose_flg')
 predictcolumn('prediction')
-outputtable('<SCHEMA> .naivesnayes_conf_matrix')
+outputtable('<SCHEMA>.naivesnayes_conf_matrix')
 );
 
 
-select * from <SCHEMA> .naivesnayes_conf_matrix ;
+select * from <SCHEMA>.naivesnayes_conf_matrix ;
 
 ------ cleaning -------------------
 
