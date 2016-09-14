@@ -12,7 +12,7 @@ Besides statistics on the data, we have implemented models like:
   * GLM
   * Kmeans
   * HMM
-  * CoxPH
+  * Naive Bayes
 
 Authors:
   * Mark Oost
