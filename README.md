@@ -14,6 +14,10 @@ Besides statistics on the data, we have implemented models like:
   * HMM
   * Naive Bayes
 
+In the folder r_python_Aster, there is a set of examples of python and
+r scripts that run in the Aster cluster. We use several ways to
+connect to Aster, using RODBC, RJODBC and TeradataAsterR packages.
+
 Authors:
   * Mark Oost
   * Mireia Alos Palop
