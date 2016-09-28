@@ -39,6 +39,9 @@ try(system(sprintf("mv cleaning_text.py cleaning_text_%s.py", my_schema), intern
 #================================================================================
 #================================================================================
 
+
+#### Do this if you CAN connect via TeradataAsterR
+
 # table reviews_small
 df = read.csv('reviews_small.csv')
 names(df) <- tolower(names(df))
@@ -51,14 +54,21 @@ colnames(t) <- c('sentence')
 ta.create(t, table = "test", schemaName = my_schema, tableType = "fact" ,partitionKey = "sentence")
 
 
-
-## if you dont have access to TeradataAsterR, copy it from my schema
+#### NO ACCESS via TeradataAsterR, then copy the tables from a schema
 query = 
 sprintf( "create table %s.test distribute by hash (sentence) as
 select *
 from ma186085.test;", my_schema)
 
 sqlQuery(asterCluster, query)
+
+query = 
+sprintf( "create table %s.reviews_small distribute by hash (id) as
+select *
+from ma186085.reviews_small;", my_schema)
+
+sqlQuery(asterCluster, query)
+
 
 #================================================================================
 #================================================================================
@@ -69,14 +79,14 @@ sqlQuery(asterCluster, query)
 sqlQuery(asterCluster, sprintf("uninstall file 'example_python_%s.py'", my_schema))
 sqlQuery(asterCluster, sprintf("install file 'example_python_%s.py'", my_schema))
 
-query2 = 
+query = 
 sprintf("
 SELECT * FROM STREAM
 (ON (SELECT sentence FROM %s.test)
 SCRIPT ('python example_python_%s.py')
 OUTPUTS ('word varchar', 'count varchar'));", my_schema, my_schema)
 
-sqlQuery(asterCluster, query2)
+sqlQuery(asterCluster, query)
 
 #================================================================================
 #================================================================================
@@ -87,13 +97,13 @@ sqlQuery(asterCluster, query2)
 sqlQuery(asterCluster, sprintf("uninstall file 'cleaning_text_%s.py'", my_schema))
 sqlQuery(asterCluster, sprintf("install file 'cleaning_text_%s.py'", my_schema))
 
-query2 = 
+query = 
 sprintf("
 SELECT * FROM STREAM
 (ON (SELECT \"text\", \"id\" FROM %s.reviews_small limit 2)
 SCRIPT ('python cleaning_text.py')
 OUTPUTS ( 'text varchar', 'clean_text varchar'));", my_schema)
 
-df = sqlQuery(asterCluster, query2)
+df = sqlQuery(asterCluster, query)
 
 df
